@@ -2277,6 +2277,50 @@ static int module_set_url(int argc, const char **argv, const char *prefix)
 	return 0;
 }
 
+static int module_set_branch(int argc, const char **argv, const char *prefix)
+{
+	/*
+	 * We accept the `quiet` option for uniformity across subcommands,
+	 * though there is nothing to make less verbose in this subcommand.
+	 */
+	int quiet = 0, opt_default = 0, ret;
+	const char *opt_branch = NULL;
+	const char *path;
+	char *config_name;
+
+	struct option options[] = {
+		OPT__QUIET(&quiet,
+			N_("suppress output for setting default tracking branch")),
+		OPT_BOOL(0, "default", &opt_default,
+			N_("set the default tracking branch to master")),
+		OPT_STRING(0, "branch", &opt_branch, N_("branch"),
+			N_("set the default tracking branch")),
+		OPT_END()
+	};
+	const char *const usage[] = {
+		N_("git submodule--helper set-branch [--quiet] (-d|--default) <path>"),
+		N_("git submodule--helper set-branch [--quiet] (-b|--branch) <branch> <path>"),
+		NULL
+	};
+
+	argc = parse_options(argc, argv, prefix, options, usage, 0);
+
+	if (!opt_branch && !opt_default)
+		die(_("--branch or --default required"));
+
+	if (opt_branch && opt_default)
+		die(_("--branch and --default are mutually exclusive"));
+
+	if (argc != 1 || !(path = argv[0]))
+		usage_with_options(usage, options);
+
+	config_name = xstrfmt("submodule.%s.branch", path);
+	ret = config_set_in_gitmodules_file_gently(config_name, opt_branch);
+
+	free(config_name);
+	return !!ret;
+}
+
 #define SUPPORT_SUPER_PREFIX (1<<0)
 
 struct cmd_struct {
@@ -2308,6 +2352,7 @@ static struct cmd_struct commands[] = {
 	{"check-name", check_name, 0},
 	{"config", module_config, 0},
 	{"set-url", module_set_url, 0},
+	{"set-branch", module_set_branch, 0},
 };
 
 int cmd_submodule__helper(int argc, const char **argv, const char *prefix)

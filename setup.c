@@ -301,7 +301,7 @@ int get_common_dir_noenv(struct strbuf *sb, const char *gitdir)
  *
  *  - either an objects/ directory _or_ the proper
  *    GIT_OBJECT_DIRECTORY environment variable
- *  - a refs/ directory
+ *  - a refs/ directory _or_ a packed-refs file
  *  - either a HEAD symlink or a HEAD file that is formatted as
  *    a proper "ref:", or a regular file HEAD that has a properly
  *    formatted sha1 object name.
@@ -337,8 +337,13 @@ int is_git_directory(const char *suspect)
 
 	strbuf_setlen(&path, len);
 	strbuf_addstr(&path, "/refs");
-	if (access(path.buf, X_OK))
-		goto done;
+	if (access(path.buf, X_OK)) {
+		strbuf_setlen(&path, len);
+		strbuf_addstr(&path, "/packed-refs");
+		if (access(path.buf, R_OK)) {
+			goto done;
+		}
+	}
 
 	ret = 1;
 done:

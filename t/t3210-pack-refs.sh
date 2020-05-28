@@ -253,4 +253,15 @@ test_expect_success SYMLINKS 'pack symlinked packed-refs' '
 	test "$(readlink .git/packed-refs)" = "my-deviant-packed-refs"
 '
 
+test_expect_success 'repo with just packed-refs is still valid' '
+	rm -rf .git/refs/bisect &&
+    git for-each-ref >all-refs-before &&
+    git pack-refs --all &&
+    rm -r .git/refs &&
+    test_path_is_file .git/packed-refs &&
+	test_path_is_missing .git/refs &&
+	git for-each-ref >all-refs-after &&
+    test_cmp all-refs-before all-refs-after
+'
+
 test_done

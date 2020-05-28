@@ -1,0 +1,5 @@
+commit bad78b6de70700933a2f93ebadaa37a5e852d9ea
+Author: Han-Wen Nienhuys <hanwen@google.com>
+Date:   Mon May 18 20:12:57 2020 +0200
+
+    C: get rid of inner blocks for local scoping

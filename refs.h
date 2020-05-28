@@ -9,6 +9,9 @@ struct string_list;
 struct string_list_item;
 struct worktree;
 
+/* Returns the ref storage backend to use by default. */
+const char *default_ref_storage(void);
+
 /*
  * Resolve a reference, recursively following symbolic refererences.
  *
@@ -731,6 +734,17 @@ int refs_update_ref(struct ref_store *refs, const char *msg, const char *refname
 int update_ref(const char *msg, const char *refname,
 	       const struct object_id *new_oid, const struct object_id *old_oid,
 	       unsigned int flags, enum action_on_err onerr);
+
+/* Pseudorefs (eg. HEAD, CHERRY_PICK_HEAD) have a separate routines for updating
+   and deletion as they cannot take part in normal transactional updates.
+   Pseudorefs should only be written for the main repository.
+*/
+int ref_store_write_pseudoref(struct ref_store *refs, const char *pseudoref,
+			      const struct object_id *oid,
+			      const struct object_id *old_oid,
+			      struct strbuf *err);
+int ref_store_delete_pseudoref(struct ref_store *refs, const char *pseudoref,
+			       const struct object_id *old_oid);
 
 int parse_hide_refs_config(const char *var, const char *value, const char *);
 
